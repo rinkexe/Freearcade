@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Free Slot Machine</title>
+  <style>
+    :root{
+      --bg: #0b1020;
+      --panel: #121a33;
+      --accent: #5ee1ff;
+      --accent-2: #ffb86b;
+      --text: #e6f1ff;
+      --muted: #9bb3cc;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 20px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      background: radial-gradient(1000px 700px at 70% -10%, #1d274c, transparent),
+                  radial-gradient(800px 600px at -10% 40%, #1a3a57, transparent),
+                  var(--bg);
+      color:var(--text);
+      min-height:100svh;
+      display:grid;
+      place-items:center;
+      padding:24px;
+    }
+    .app{
+      width:min(920px, 96vw);
+      display:grid;
+      gap:18px;
+    }
+    .header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .title{
+      font-size:clamp(22px, 4vw, 36px);
+      font-weight:800;
+      letter-spacing:.5px;
+      display:flex; align-items:center; gap:12px;
+      color:var(--text);
+      text-shadow:0 6px 18px rgba(0,0,0,.35);
+    }
+    .title .badge{font-size:.65em; font-weight:700; padding:6px 10px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); color:#051422; border-radius:999px}
+
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .status{
+      display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center;
+      padding:14px 16px;
+    }
+    .stat{
+      background:rgba(255,255,255,.03);
+      border:1px dashed rgba(255,255,255,.1);
+      padding:10px 12px; border-radius:14px; display:flex; gap:10px; align-items:baseline;
+    }
+    .stat .label{color:var(--muted); font-size:13px}
+    .stat .value{font-weight:800; font-size:18px}
+
+    .slot{
+      display:grid; gap:14px; padding:16px; position:relative;
+    }
+    .reels{
+      display:grid; grid-template-columns:repeat(3, 1fr); gap:14px;
+    }
+    .reel{
+      background:radial-gradient(200px 200px at 50% -20%, rgba(255,255,255,.07), transparent), rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:16px; height:270px; overflow:hidden; position:relative;
+      display:grid; grid-template-rows:repeat(3, 1fr);
+    }
+    .cell{
+      display:grid; place-items:center; font-size:56px; user-select:none;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .cell:last-child{border-bottom:none}
+
+    .controls{
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; padding:14px 16px;
+    }
+    .left, .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+
+    button, select, input[type=number]{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--text);
+      border-radius:12px; padding:12px 14px; font-weight:700; cursor:pointer;
+      transition:.2s transform ease, .2s background ease, .2s box-shadow ease;
+    }
+    input[type=number]{cursor:text; width:80px}
+    button:hover{transform:translateY(-1px)}
+    button:disabled{opacity:.5; cursor:not-allowed; transform:none}
+
+    .spin{
+      background:linear-gradient(90deg, var(--accent), var(--accent-2));
+      color:#08202e; border:none; padding:14px 18px; border-radius:14px;
+      box-shadow:0 10px 24px rgba(94,225,255,.2);
+      font-size:16px;
+    }
+
+    .paylines{padding:10px 16px 18px; color:var(--muted); font-size:13px}
+    .msg{font-weight:800; color:var(--accent);}
+
+    .footer{color:var(--muted); font-size:12px; text-align:center;}
+
+    @keyframes blinkWin { 50% { filter: drop-shadow(0 0 18px rgba(255, 255, 255, .8)); transform: scale(1.06);} }
+    .win .cell{ animation: blinkWin .35s ease-in-out 0s 4; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="title">🎰 Free Slot Machine <span class="badge">No money • Just fun</span></div>
+      <div class="stat"><span class="label">Message</span><span id="message" class="value">Welcome! Spin to play.</span></div>
+    </div>
+
+    <div class="panel status">
+      <div class="stat"><span class="label">Balance</span> <span class="value" id="balance">1000</span> 💰</div>
+      <div class="stat"><span class="label">Last Win</span> <span class="value" id="lastWin">0</span> ✨</div>
+    </div>
+
+    <div class="panel slot">
+      <div class="reels" id="reels"></div>
+      <div class="paylines">Paylines: 5 (3 rows + 2 diagonals). Three of a kind wins. Payouts scale with bet. Symbols: 🍒 🍋 🔔 ⭐ 🍀 7️⃣ 💎</div>
+    </div>
+
+    <div class="panel controls">
+      <div class="left">
+        <label class="stat" style="gap:8px;">
+          <span class="label">Bet</span>
+          <input type="number" id="bet" value="5" min="1" step="1" />
+        </label>
+
+        <button id="autoplay" title="Auto spin 25 times">♾️ Autoplay (25)</button>
+        <button id="reset">Reset</button>
+      </div>
+      <div class="right">
+        <button class="spin" id="spin">SPIN</button>
+      </div>
+    </div>
+
+    <div class="footer">This is a free, offline game for entertainment only. No real-money wagering.<br/>Made with plain HTML/CSS/JS — customize payouts in the code below.</div>
+  </div>
+
+  <script>
+    // --- Slot Machine Logic -------------------------------------------------
+    const reelsEl = document.getElementById('reels');
+    const messageEl = document.getElementById('message');
+    const balanceEl = document.getElementById('balance');
+    const lastWinEl = document.getElementById('lastWin');
+    const spinBtn = document.getElementById('spin');
+    const resetBtn = document.getElementById('reset');
+    const autoplayBtn = document.getElementById('autoplay');
+    const betInput = document.getElementById('bet');
+
+    // Define symbols, their weights (rarity), and payouts for 3-in-a-line (as a multiple of bet)
+    const SYMBOLS = [
+      { emoji: '🍒', weight: 28, payout: 4 },
+      { emoji: '🍋', weight: 24, payout: 6 },
+      { emoji: '🔔', weight: 18, payout: 10 },
+      { emoji: '⭐',  weight: 14, payout: 12 },
+      { emoji: '🍀', weight: 10, payout: 16 },
+      { emoji: '7️⃣', weight: 5,  payout: 24 },
+      { emoji: '💎', weight: 3,  payout: 36 }
+    ];
+
+    const ROWS = 3, COLS = 3;
+
+    // Build weighted symbol pool for random selection
+    const weightedPool = SYMBOLS.flatMap(s => Array.from({length: s.weight}, () => s));
+
+    // Create grid
+    const grid = Array.from({ length: ROWS }, () => Array(COLS).fill(''));
+
+    function renderGrid(highlightLines = []){
+      reelsEl.innerHTML = '';
+      for(let r=0; r<ROWS; r++){
+        const col = document.createElement('div');
+        col.className = 'reel' + (highlightLines.some(l => l.includes(r)) ? ' win' : '');
+        for(let c=0; c<COLS; c++){
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.textContent = grid[r][c] || ' ';
+          col.appendChild(cell);
+        }
+        reelsEl.appendChild(col);
+      }
+    }
+
+    function randSymbol(){
+      return weightedPool[Math.floor(Math.random() * weightedPool.length)].emoji;
+    }
+
+    function spinOnce(){
+      // Fill grid randomly
+      for(let r=0; r<ROWS; r++){
+        for(let c=0; c<COLS; c++){
+          grid[r][c] = randSymbol();
+        }
+      }
+    }
+
+    function paylines(){
+      return [
+        // rows
+        [[0,0],[0,1],[0,2]],
+        [[1,0],[1,1],[1,2]],
+        [[2,0],[2,1],[2,2]],
+        // diagonals
+        [[0,0],[1,1],[2,2]],
+        [[2,0],[1,1],[0,2]],
+      ];
+    }
+
+    function emojiPayout(emoji){
+      const s = SYMBOLS.find(x => x.emoji === emoji);
+      return s ? s.payout : 0;
+    }
+
+    function evaluateWin(bet){
+      let total = 0; const winningLines = [];
+      for(const line of paylines()){
+        const [a,b,c] = line.map(([r,co]) => grid[r][co]);
+        if(a === b && b === c){
+          total += emojiPayout(a) * bet;
+          winningLines.push(line.map(([r])=>r));
+        }
+      }
+      return { total, winningLines };
+    }
+
+    function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
+
+    let spinning = false;
+    let balance = 1000;
+
+    async function doSpin(autoplay=false){
+      if(spinning) return;
+      const bet = parseInt(betInput.value, 10);
+      if(isNaN(bet) || bet < 1){
+        setMessage('Invalid bet amount.');
+        return;
+      }
+      if(balance < bet){
+        setMessage('Not enough balance. Reset to continue.');
+        return;
+      }
+      spinning = true;
+      setButtons();
+
+      balance -= bet; updateBalance();
+      setMessage('Spinning…');
+
+      // Simple animation: rapidly re-roll symbols before final result
+      const ticks = 18; // frames
+      for(let i=0;i<ticks;i++){
+        spinOnce();
+        renderGrid();
+        await sleep(60 + i*8);
+      }
+
+      // Final result and evaluation
+      spinOnce();
+      const { total, winningLines } = evaluateWin(bet);
+      renderGrid(winningLines);
+
+      if(total>0){
+        balance += total; updateBalance();
+        lastWinEl.textContent = total;
+        setMessage(`You won ${total}! ✨`);
+      } else {
+        lastWinEl.textContent = 0;
+        setMessage('No win. Try again!');
+      }
+
+      spinning = false;
+      setButtons();
+
+      if(autoplay){
+        await sleep(400);
+      }
+      return total;
+    }
+
+    function setMessage(text){
+      messageEl.textContent = text;
+    }
+    function updateBalance(){
+      balanceEl.textContent = balance;
+    }
+    function setButtons(){
+      spinBtn.disabled = spinning;
+      autoplayBtn.disabled = spinning;
+      betInput.disabled = spinning;
+      resetBtn.disabled = spinning;
+    }
+
+    // Event Listeners
+    spinBtn.addEventListener('click', () => doSpin());
+
+    resetBtn.addEventListener('click', () => {
+      if(spinning) return;
+      balance = 1000; updateBalance();
+      lastWinEl.textContent = '0';
+      setMessage('Balance reset. Good luck!');
+    });
+
+    autoplayBtn.addEventListener('click', async () => {
+      if(spinning) return;
+      let rounds = 25;
+      while(rounds-- > 0){
+        const bet = parseInt(betInput.value,10);
+        if(balance < bet) break;
+        await doSpin(true);
+      }
+    });
+
+    // First render
+    renderGrid();
+  </script>
+</body>
+</html>
