@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Arcade</title>
+  <style>
+    :root{
+      --bg: #0b1020;
+      --panel: #121a33;
+      --accent: #5ee1ff;
+      --accent-2: #ffb86b;
+      --text: #e6f1ff;
+      --muted: #9bb3cc;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 20px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial;
+      background: radial-gradient(1000px 700px at 70% -10%, #1d274c, transparent),
+                  radial-gradient(800px 600px at -10% 40%, #1a3a57, transparent),
+                  var(--bg);
+      color:var(--text);
+      min-height:100svh;
+      display:grid;
+      place-items:center;
+      padding:24px;
+    }
+    .app{
+      width:min(920px, 96vw);
+      display:grid;
+      gap:24px;
+    }
+    .title{
+      font-size:clamp(26px, 4vw, 40px);
+      font-weight:900;
+      text-align:center;
+      color:var(--text);
+      text-shadow:0 6px 18px rgba(0,0,0,.35);
+    }
+    .games{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:20px;
+    }
+    .game-card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:20px;
+      text-align:center;
+      transition:.25s transform ease, .25s box-shadow ease;
+    }
+    .game-card:hover{
+      transform:translateY(-6px);
+      box-shadow:0 14px 30px rgba(0,0,0,.5);
+    }
+    .game-card h2{
+      font-size:20px;
+      margin:10px 0;
+    }
+    .game-card p{
+      font-size:14px;
+      color:var(--muted);
+    }
+    .game-card a{
+      display:inline-block;
+      margin-top:12px;
+      background:linear-gradient(90deg, var(--accent), var(--accent-2));
+      color:#08202e;
+      font-weight:700;
+      padding:10px 14px;
+      border-radius:12px;
+      text-decoration:none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="title">🎮 Free Arcade</div>
+    <div class="games">
+      <div class="game-card">
+        <div style="font-size:40px;">🎰</div>
+        <h2>Slot Machine</h2>
+        <p>Spin the reels and try your luck!</p>
+        <a href="slot.html">Play</a>
+      </div>
+      <div class="game-card">
+        <div style="font-size:40px;">💣</div>
+        <h2>Mines</h2>
+        <p>Avoid the bombs and cash out winnings!</p>
+        <a href="mines.html">Play</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
