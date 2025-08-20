@@ -242,7 +242,7 @@
     function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
 
     let spinning = false;
-    let balance = 1000;
+    let balance = 100;
 
     async function doSpin(autoplay=false){
       if(spinning) return;
