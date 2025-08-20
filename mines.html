@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mines Game</title>
+  <style>
+    :root{
+      --bg: #0b1020;
+      --panel: #121a33;
+      --accent: #5ee1ff;
+      --accent-2: #ffb86b;
+      --text: #e6f1ff;
+      --muted: #9bb3cc;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 20px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial;
+      background: radial-gradient(1000px 700px at 70% -10%, #1d274c, transparent),
+                  radial-gradient(800px 600px at -10% 40%, #1a3a57, transparent),
+                  var(--bg);
+      color:var(--text);
+      min-height:100svh;
+      display:grid;
+      place-items:center;
+      padding:24px;
+    }
+    .app{
+      width:min(920px, 96vw);
+      display:grid;
+      gap:18px;
+    }
+    .header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .title{
+      font-size:clamp(22px, 4vw, 36px);
+      font-weight:800;
+      display:flex; align-items:center; gap:12px;
+      color:var(--text);
+      text-shadow:0 6px 18px rgba(0,0,0,.35);
+    }
+    .title .badge{font-size:.65em; font-weight:700; padding:6px 10px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); color:#051422; border-radius:999px}
+
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .status{
+      display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center;
+      padding:14px 16px;
+    }
+    .stat{
+      background:rgba(255,255,255,.03);
+      border:1px dashed rgba(255,255,255,.1);
+      padding:10px 12px; border-radius:14px; display:flex; gap:10px; align-items:baseline;
+    }
+    .stat .label{color:var(--muted); font-size:13px}
+    .stat .value{font-weight:800; font-size:18px}
+
+    .grid{
+      display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; padding:16px;
+    }
+    .tile{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.12);
+      height:70px;
+      border-radius:12px;
+      display:grid; place-items:center;
+      font-size:26px; font-weight:700;
+      cursor:pointer; user-select:none;
+      transition:.2s background ease, .2s transform ease;
+    }
+    .tile.revealed{cursor:default;}
+    .tile.safe{background:rgba(94,225,255,.15); color:var(--accent);}
+    .tile.mine{background:rgba(255,0,80,.25); color:#ff6070;}
+
+    .controls{display:flex; justify-content:space-between; gap:10px; padding:14px 16px; flex-wrap:wrap}
+    .left, .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+
+    button, input[type=number]{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--text);
+      border-radius:12px; padding:12px 14px; font-weight:700; cursor:pointer;
+    }
+    input[type=number]{cursor:text; width:80px}
+
+    .action{
+      background:linear-gradient(90deg, var(--accent), var(--accent-2));
+      color:#08202e; border:none; padding:14px 18px; border-radius:14px;
+      box-shadow:0 10px 24px rgba(94,225,255,.2);
+    }
+
+    .footer{color:var(--muted); font-size:12px; text-align:center;}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="title">💣 Mines Game <span class="badge">5 mines • 5x5 grid</span></div>
+      <a href="index.html" style="color:var(--accent); font-weight:700; text-decoration:none">🏠 Home</a>
+    </div>
+
+    <div class="panel status">
+      <div class="stat"><span class="label">Balance</span> <span class="value" id="balance">1000</span> 💰</div>
+      <div class="stat"><span class="label">Winnings</span> <span class="value" id="winnings">0</span> ✨</div>
+      <div class="stat"><span class="label">Message</span> <span class="value" id="message">Place bet & start.</span></div>
+    </div>
+
+    <div class="panel controls">
+      <div class="left">
+        <label class="stat" style="gap:8px;">
+          <span class="label">Bet</span>
+          <input type="number" id="bet" value="10" min="1" step="1" />
+        </label>
+        <button id="start">Start</button>
+        <button id="cashout" disabled>Cash Out</button>
+        <button id="reset">Reset</button>
+      </div>
+    </div>
+
+    <div class="panel grid" id="grid"></div>
+
+    <div class="footer">Free Mines game — 5 mines hidden in 5x5 grid. Click safe tiles to increase winnings. Cash out anytime or risk hitting a mine!</div>
+  </div>
+
+  <script>
+    const balanceEl = document.getElementById('balance');
+    const winningsEl = document.getElementById('winnings');
+    const messageEl = document.getElementById('message');
+    const betInput = document.getElementById('bet');
+    const startBtn = document.getElementById('start');
+    const cashoutBtn = document.getElementById('cashout');
+    const resetBtn = document.getElementById('reset');
+    const gridEl = document.getElementById('grid');
+
+    let balance = 1000;
+    let bet = 0;
+    let active = false;
+    let winnings = 0;
+    let mines = [];
+    let revealed = new Set();
+
+    function updateUI(){
+      balanceEl.textContent = balance;
+      winningsEl.textContent = winnings;
+    }
+
+    function setMessage(msg){ messageEl.textContent = msg; }
+
+    function startGame(){
+      bet = parseInt(betInput.value,10);
+      if(isNaN(bet) || bet<1){ setMessage('Invalid bet'); return; }
+      if(balance < bet){ setMessage('Not enough balance'); return; }
+
+      balance -= bet; winnings = 0;
+      active = true;
+      revealed.clear();
+      mines = generateMines(5);
+      renderGrid();
+      updateUI();
+      setMessage('Game started! Click tiles.');
+      startBtn.disabled = true;
+      cashoutBtn.disabled = false;
+      betInput.disabled = true;
+    }
+
+    function generateMines(count){
+      const positions = [];
+      while(positions.length < count){
+        let pos = Math.floor(Math.random()*25);
+        if(!positions.includes(pos)) positions.push(pos);
+      }
+      return positions;
+    }
+
+    function renderGrid(){
+      gridEl.innerHTML = '';
+      for(let i=0;i<25;i++){
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        if(revealed.has(i)){
+          if(mines.includes(i)){
+            tile.textContent = '💣';
+            tile.classList.add('mine','revealed');
+          } else {
+            tile.textContent = '✅';
+            tile.classList.add('safe','revealed');
+          }
+        }
+        tile.addEventListener('click', ()=>revealTile(i));
+        gridEl.appendChild(tile);
+      }
+    }
+
+    function revealTile(i){
+      if(!active || revealed.has(i)) return;
+      revealed.add(i);
+      if(mines.includes(i)){
+        // hit mine
+        setMessage('Boom! You lost your bet.');
+        active = false;
+        winnings = 0;
+        cashoutBtn.disabled = true;
+        startBtn.disabled = false;
+        betInput.disabled = false;
+      } else {
+        winnings += Math.floor(bet * 0.5);
+        setMessage('Safe! Keep going or cash out.');
+      }
+      renderGrid();
+      updateUI();
+    }
+
+    function cashOut(){
+      if(!active) return;
+      balance += winnings;
+      setMessage(`You cashed out ${winnings}!`);
+      active = false;
+      winnings = 0;
+      updateUI();
+      cashoutBtn.disabled = true;
+      startBtn.disabled = false;
+      betInput.disabled = false;
+      renderGrid();
+    }
+
+    function reset(){
+      balance = 1000;
+      winnings = 0;
+      active = false;
+      mines = [];
+      revealed.clear();
+      renderGrid();
+      updateUI();
+      setMessage('Balance reset.');
+      startBtn.disabled = false;
+      betInput.disabled = false;
+      cashoutBtn.disabled = true;
+    }
+
+    // Event listeners
+    startBtn.addEventListener('click', startGame);
+    cashoutBtn.addEventListener('click', cashOut);
+    resetBtn.addEventListener('click', reset);
+
+    renderGrid();
+    updateUI();
+  </script>
+</body>
+</html>
