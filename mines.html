@@ -121,7 +121,7 @@
       <div class="left">
         <label class="stat" style="gap:8px;">
           <span class="label">Bet</span>
-          <input type="number" id="bet" value="10" min="1" step="1" />
+          <input type="number" id="bet" value="40" min="40" step="40" />
         </label>
         <button id="start">Start</button>
         <button id="cashout" disabled>Cash Out</button>
@@ -237,7 +237,7 @@
     }
 
     function reset(){
-      balance = 100;
+      balance = 1000;
       winnings = 0;
       active = false;
       mines = [];
