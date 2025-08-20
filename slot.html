@@ -137,7 +137,7 @@
       <div class="left">
         <label class="stat" style="gap:8px;">
           <span class="label">Bet</span>
-          <input type="number" id="bet" value="5" min="1" step="1" />
+          <input type="number" id="bet" value="100" min="100" step="100" />
         </label>
 
         <button id="autoplay" title="Auto spin 25 times">♾️ Autoplay (25)</button>
@@ -165,13 +165,13 @@
 
     // Define symbols, their weights (rarity), and payouts for 3-in-a-line (as a multiple of bet)
     const SYMBOLS = [
-      { emoji: '🍒', weight: 28, payout: 4 },
-      { emoji: '🍋', weight: 24, payout: 6 },
-      { emoji: '🔔', weight: 18, payout: 10 },
-      { emoji: '⭐',  weight: 14, payout: 12 },
-      { emoji: '🍀', weight: 10, payout: 16 },
-      { emoji: '7️⃣', weight: 5,  payout: 24 },
-      { emoji: '💎', weight: 3,  payout: 36 }
+      { emoji: '🍒', weight: 28, payout: 2 },
+      { emoji: '🍋', weight: 24, payout: 3 },
+      { emoji: '🔔', weight: 18, payout: 5 },
+      { emoji: '⭐',  weight: 14, payout: 6 },
+      { emoji: '🍀', weight: 10, payout: 8 },
+      { emoji: '7️⃣', weight: 5,  payout: 12 },
+      { emoji: '💎', weight: 3,  payout: 18 }
     ];
 
     const ROWS = 3, COLS = 3;
